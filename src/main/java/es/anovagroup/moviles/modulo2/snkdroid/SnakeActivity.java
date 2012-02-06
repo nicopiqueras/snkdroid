@@ -8,13 +8,18 @@
 package es.anovagroup.moviles.modulo2.snkdroid;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
 public class SnakeActivity extends Activity {
 
     private static final String TAG = "snkdroid";
-
+    
+    private SharedPreferences mPrefs;
+    public int saved_score;
+    public String scoreboard_title;
+    
     /**
      * Called when the activity is first created.
      * 
@@ -27,8 +32,29 @@ public class SnakeActivity extends Activity {
     @Override
     public void onCreate(final Bundle savedState) {
         super.onCreate(savedState);
+        
+        this.scoreboard_title = getString(R.string.score_title);
+        mPrefs = getSharedPreferences("snake.prefs", MODE_PRIVATE);
+        this.saved_score = mPrefs.getInt("score", 0);
+        
         Log.i(TAG, "onCreate");
         setContentView(new SnakeView(this));
     }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
 
+        SharedPreferences.Editor ed = mPrefs.edit();
+        ed.putInt("score", this.saved_score);
+        ed.commit();
+    }
+    
+    public void update_score(boolean is_game_over){
+        if(is_game_over){
+            this.saved_score = 0;
+        }else{
+            this.saved_score += 10;
+        }
+    }
 }

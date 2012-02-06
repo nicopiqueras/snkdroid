@@ -7,6 +7,7 @@
 
 package es.anovagroup.moviles.modulo2.snkdroid;
 
+import java.io.InputStream;
 import java.util.List;
 
 import es.anovagroup.moviles.modulo2.snkdroid.engine.*;
@@ -15,6 +16,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
@@ -30,7 +33,7 @@ public class SnakeView extends View implements Delegate {
     private int topX;
     private int topY;
     private int blockSize;
-
+    
     class RefreshHandler extends Handler {
         @Override
         public void handleMessage(final Message msg) {
@@ -58,7 +61,8 @@ public class SnakeView extends View implements Delegate {
 
     private Point food;
     private boolean dead;
-
+    private Paint scorePaint;
+    
     public SnakeView(final Context context) {
         super(context);
         setFocusable(true);
@@ -68,7 +72,25 @@ public class SnakeView extends View implements Delegate {
         this.engine.start();
         this.engine.tick();
     }
-
+    
+    public Paint getScorePaint(Align align) {
+        if(scorePaint == null) {
+            scorePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            scorePaint.setColor(Color.WHITE);
+            scorePaint.setShadowLayer(2, 2, 2, Color.RED);
+            scorePaint.setTextSize(20);
+            scorePaint.setTypeface(Typeface.DEFAULT_BOLD);
+            scorePaint.setStrokeWidth(5);
+        }
+        scorePaint.setTextAlign(align);
+        return scorePaint;
+    }
+    
+    public void drawScore(final Canvas canvas, final Paint paint) {
+        String text = ((SnakeActivity) this.getContext()).scoreboard_title + " " + ((SnakeActivity) this.getContext()).saved_score;
+        canvas.drawText(text, 60, 20, getScorePaint(Align.LEFT));
+    }
+    
     @Override
     protected void onDraw(final Canvas canvas) {
         super.onDraw(canvas);
@@ -83,6 +105,7 @@ public class SnakeView extends View implements Delegate {
         drawBgDroid(canvas, paint);
         drawSnakeDroid(canvas, paint);
         drawFoodDroid(canvas, paint);
+        drawScore(canvas, paint);
     }
 
     @Override
@@ -157,9 +180,12 @@ public class SnakeView extends View implements Delegate {
         this.snake = snake;
         dead = true;
         refreshHandler.sleep(0);
+        
+        ((SnakeActivity) this.getContext()).update_score(dead);
     }
 
     public void eatFood(final Point food) {
+        ((SnakeActivity) this.getContext()).update_score(this.dead);
     }
 
     public void nextTick(final List<Point> snake) {
